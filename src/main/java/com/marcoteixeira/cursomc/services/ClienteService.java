@@ -1,7 +1,9 @@
 package com.marcoteixeira.cursomc.services;
 
 import com.marcoteixeira.cursomc.domain.Categoria;
+import com.marcoteixeira.cursomc.domain.Cliente;
 import com.marcoteixeira.cursomc.repositories.CategoriaRepository;
+import com.marcoteixeira.cursomc.repositories.ClienteRepository;
 import com.marcoteixeira.cursomc.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,17 +11,17 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class CategoriaService {
+public class ClienteService {
 
-    private final CategoriaRepository categoriaRepository;
+    private final ClienteRepository clienteRepository;
 
-    public CategoriaService(CategoriaRepository categoriaRepository) {
-        this.categoriaRepository = categoriaRepository;
+    public ClienteService(ClienteRepository clienteRepository) {
+        this.clienteRepository = clienteRepository;
     }
 
-    public Categoria buscar(Integer id) {
-        Optional<Categoria> categoria = categoriaRepository.findById(id);
-        return categoria.orElseThrow(() ->
+    public Cliente buscar(Integer id) {
+        Optional<Cliente> cliente = clienteRepository.findById(id);
+        return cliente.orElseThrow(() ->
                 new ObjectNotFoundException("Objeto não encontrado id: " + id + ", Tipo: " + Categoria.class.getName())
         );
     }

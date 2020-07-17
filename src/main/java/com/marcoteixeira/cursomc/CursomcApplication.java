@@ -5,6 +5,7 @@ import com.marcoteixeira.cursomc.domain.Cidade;
 import com.marcoteixeira.cursomc.domain.Cliente;
 import com.marcoteixeira.cursomc.domain.Endereco;
 import com.marcoteixeira.cursomc.domain.Estado;
+import com.marcoteixeira.cursomc.domain.ItemPedido;
 import com.marcoteixeira.cursomc.domain.Pagamento;
 import com.marcoteixeira.cursomc.domain.PagamentoBoleto;
 import com.marcoteixeira.cursomc.domain.PagamentoComCartao;
@@ -17,6 +18,7 @@ import com.marcoteixeira.cursomc.repositories.CidadeRepository;
 import com.marcoteixeira.cursomc.repositories.ClienteRepository;
 import com.marcoteixeira.cursomc.repositories.EnderecoRepository;
 import com.marcoteixeira.cursomc.repositories.EstadoRepository;
+import com.marcoteixeira.cursomc.repositories.ItemPedidoRepository;
 import com.marcoteixeira.cursomc.repositories.PagamentoRepository;
 import com.marcoteixeira.cursomc.repositories.PedidoRepository;
 import com.marcoteixeira.cursomc.repositories.ProdutoRepository;
@@ -31,10 +33,6 @@ import java.util.Collections;
 @SpringBootApplication
 public class CursomcApplication implements CommandLineRunner {
 
-    public static void main(String[] args) {
-        SpringApplication.run(CursomcApplication.class, args);
-    }
-
     private final CategoriaRepository categoriaRepository;
     private final ProdutoRepository produtoRepository;
     private final EstadoRepository estadoRepository;
@@ -43,11 +41,18 @@ public class CursomcApplication implements CommandLineRunner {
     private final EnderecoRepository enderecoRepository;
     private final PedidoRepository pedidoRepository;
     private final PagamentoRepository pagamentoRepository;
+    private final ItemPedidoRepository itemPedidoRepository;
+
 
     public CursomcApplication(CategoriaRepository categoriaRepository,
                               ProdutoRepository produtoRepository,
                               EstadoRepository estadoRepository,
-                              CidadeRepository cidadeRepository, ClienteRepository clienteRepository, EnderecoRepository enderecoRepository, PedidoRepository pedidoRepository, PagamentoRepository pagamentoRepository) {
+                              CidadeRepository cidadeRepository,
+                              ClienteRepository clienteRepository,
+                              EnderecoRepository enderecoRepository,
+                              PedidoRepository pedidoRepository,
+                              PagamentoRepository pagamentoRepository,
+                              ItemPedidoRepository itemPedidoRepository) {
         this.categoriaRepository = categoriaRepository;
         this.produtoRepository = produtoRepository;
         this.estadoRepository = estadoRepository;
@@ -56,6 +61,11 @@ public class CursomcApplication implements CommandLineRunner {
         this.enderecoRepository = enderecoRepository;
         this.pedidoRepository = pedidoRepository;
         this.pagamentoRepository = pagamentoRepository;
+        this.itemPedidoRepository = itemPedidoRepository;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(CursomcApplication.class, args);
     }
 
     @Override
@@ -110,13 +120,26 @@ public class CursomcApplication implements CommandLineRunner {
         Pagamento pagamento1 = new PagamentoComCartao(null, EstadoPagamento.QUITADO, pedido1, 6);
         pedido1.setPagamento(pagamento1);
 
-        Pagamento pagamento2 = new PagamentoBoleto(null,  EstadoPagamento.PENDENTE, pedido2, sdf.parse("20/10/2017 00:00"),  null);
+        Pagamento pagamento2 = new PagamentoBoleto(null, EstadoPagamento.PENDENTE, pedido2, sdf.parse("20/10/2017 00:00"), null);
         pedido2.setPagamento(pagamento2);
 
         cliente1.getPedidos().addAll(Arrays.asList(pedido1, pedido2));
 
         pedidoRepository.saveAll(Arrays.asList(pedido1, pedido2));
         pagamentoRepository.saveAll(Arrays.asList(pagamento1, pagamento2));
+
+        ItemPedido itemPedido1 = new ItemPedido(pedido1, produto1, 0.00, 1, 2000.000);
+        ItemPedido itemPedido2 = new ItemPedido(pedido1, produto3, 0.00, 2, 80.000);
+        ItemPedido itemPedido3 = new ItemPedido(pedido2, produto2, 100.00, 1, 800.000);
+
+        pedido1.getItens().addAll(Arrays.asList(itemPedido1, itemPedido2));
+        pedido2.getItens().addAll(Collections.singletonList(itemPedido3));
+
+        produto1.getItens().addAll(Collections.singletonList(itemPedido1));
+        produto2.getItens().addAll(Collections.singletonList(itemPedido3));
+        produto3.getItens().addAll(Collections.singletonList(itemPedido2));
+
+        itemPedidoRepository.saveAll(Arrays.asList(itemPedido1, itemPedido2, itemPedido3));
 
 
     }

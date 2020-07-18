@@ -2,8 +2,10 @@ package com.marcoteixeira.cursomc.services;
 
 import com.marcoteixeira.cursomc.domain.Categoria;
 import com.marcoteixeira.cursomc.repositories.CategoriaRepository;
+import com.marcoteixeira.cursomc.services.exceptions.DataIntegrityException;
 import com.marcoteixeira.cursomc.services.exceptions.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -32,5 +34,14 @@ public class CategoriaService {
     public Categoria update(Categoria categoria) {
         find(categoria.getId());
         return categoriaRepository.save(categoria);
+    }
+
+    public void delete(Integer id) {
+        find(id);
+        try {
+            categoriaRepository.deleteById(id);
+        }catch (DataIntegrityViolationException e){
+            throw new DataIntegrityException("Não é possível excluir categoria que possui produtos.");
+        }
     }
 }

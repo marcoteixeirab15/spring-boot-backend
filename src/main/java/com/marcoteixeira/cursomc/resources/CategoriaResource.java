@@ -1,6 +1,7 @@
 package com.marcoteixeira.cursomc.resources;
 
 import com.marcoteixeira.cursomc.domain.Categoria;
+import com.marcoteixeira.cursomc.dto.CategoriaDTO;
 import com.marcoteixeira.cursomc.services.CategoriaService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -52,6 +55,11 @@ public class CategoriaResource {
         return ResponseEntity.noContent().build();
     }
 
-
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<CategoriaDTO>> findAll(){
+        List<Categoria> lista = categoriaService.findAll();
+        List<CategoriaDTO> listaDTO = lista.stream().map(CategoriaDTO::new).collect(Collectors.toList());
+        return ResponseEntity.ok().body(listaDTO);
+    }
 
 }

@@ -1,7 +1,9 @@
 package com.marcoteixeira.cursomc.services.validation;
 
+import com.marcoteixeira.cursomc.domain.Cliente;
 import com.marcoteixeira.cursomc.domain.enums.TipoCliente;
 import com.marcoteixeira.cursomc.dto.ClienteNewDTO;
+import com.marcoteixeira.cursomc.repositories.ClienteRepository;
 import com.marcoteixeira.cursomc.resources.exception.FieldMessage;
 import com.marcoteixeira.cursomc.services.validation.utils.BR;
 
@@ -11,6 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteInsertValidator implements ConstraintValidator<ClienteInsert, ClienteNewDTO> {
+
+    private final ClienteRepository clienteRepository;
+
+    public ClienteInsertValidator(ClienteRepository clienteRepository){
+        this.clienteRepository = clienteRepository;
+    }
+
     @Override
     public void initialize(ClienteInsert ann) {
     }
@@ -25,6 +34,11 @@ public class ClienteInsertValidator implements ConstraintValidator<ClienteInsert
 
         if (objDto.getTipo().equals(TipoCliente.PESSOA_JURIDICA.getCod()) && !BR.isValidCNPJ(objDto.getCpfOuCnpj() )){
             list.add(new FieldMessage("cpfOuCnpj", "CNPJ inválido"));
+        }
+
+        Cliente aux = clienteRepository.findByEmail(objDto.getEmail());
+        if(aux != null){
+            list.add(new FieldMessage("email", "Email já existente"));
         }
 
         // inclua os testes aqui, inserindo erros na lista

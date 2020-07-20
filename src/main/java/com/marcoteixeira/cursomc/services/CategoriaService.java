@@ -5,7 +5,6 @@ import com.marcoteixeira.cursomc.dto.CategoriaDTO;
 import com.marcoteixeira.cursomc.repositories.CategoriaRepository;
 import com.marcoteixeira.cursomc.services.exceptions.DataIntegrityException;
 import com.marcoteixeira.cursomc.services.exceptions.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,9 +35,10 @@ public class CategoriaService {
         return categoriaRepository.save(categoria);
     }
 
-    public Categoria update(Categoria categoria) {
-        find(categoria.getId());
-        return categoriaRepository.save(categoria);
+    public void update(Categoria categoria) {
+        Categoria newCategoria = find(categoria.getId());
+        updateData(newCategoria, categoria);
+        categoriaRepository.save(categoria);
     }
 
     public void delete(Integer id) {
@@ -61,6 +61,10 @@ public class CategoriaService {
 
     public Categoria fromDTO(CategoriaDTO categoriaDTO){
         return new Categoria(categoriaDTO.getId(), categoriaDTO.getNome());
+    }
+
+    private void updateData(Categoria newCategoria, Categoria categoria) {
+        newCategoria.setNome(categoria.getNome());
     }
 
 }

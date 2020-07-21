@@ -1,6 +1,7 @@
 package com.marcoteixeira.cursomc.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.marcoteixeira.cursomc.domain.enums.EstadoPagamento;
 
 import javax.persistence.Entity;
@@ -8,6 +9,7 @@ import javax.xml.crypto.Data;
 import java.util.Date;
 
 @Entity
+@JsonTypeName("pagamentoComBoleto")
 public class PagamentoBoleto extends Pagamento{
 
     private static final long serialVersionUID = 1L;

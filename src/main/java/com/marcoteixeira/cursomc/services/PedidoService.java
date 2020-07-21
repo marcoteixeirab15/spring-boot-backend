@@ -1,21 +1,34 @@
 package com.marcoteixeira.cursomc.services;
 
-import com.marcoteixeira.cursomc.domain.Categoria;
+import com.marcoteixeira.cursomc.domain.ItemPedido;
+import com.marcoteixeira.cursomc.domain.PagamentoBoleto;
 import com.marcoteixeira.cursomc.domain.Pedido;
-import com.marcoteixeira.cursomc.repositories.CategoriaRepository;
+import com.marcoteixeira.cursomc.domain.enums.EstadoPagamento;
+import com.marcoteixeira.cursomc.repositories.ItemPedidoRepository;
+import com.marcoteixeira.cursomc.repositories.PagamentoRepository;
 import com.marcoteixeira.cursomc.repositories.PedidoRepository;
+import com.marcoteixeira.cursomc.repositories.ProdutoRepository;
 import com.marcoteixeira.cursomc.services.exceptions.ObjectNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Optional;
 
 @Service
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
+    private final BoletoService boletoService;
+    private final PagamentoRepository pagamentoRepository;
+    private final ProdutoRepository produtoRepository;
+    private final ItemPedidoRepository itemPedidoRepository;
 
-    public PedidoService(PedidoRepository pedidoRepository) {
+    public PedidoService(PedidoRepository pedidoRepository, BoletoService boletoService, PagamentoRepository pagamentoRepository, ProdutoRepository produtoRepository, ItemPedidoRepository itemPedidoRepository) {
         this.pedidoRepository = pedidoRepository;
+        this.boletoService = boletoService;
+        this.pagamentoRepository = pagamentoRepository;
+        this.produtoRepository = produtoRepository;
+        this.itemPedidoRepository = itemPedidoRepository;
     }
 
     public Pedido find(Integer id) {
@@ -25,4 +38,24 @@ public class PedidoService {
         );
     }
 
+    public Pedido insert(Pedido pedido) {
+        pedido.setId(null);
+        pedido.setInstante(new Date());
+        pedido.getPagamento().setEstadoPagamento(EstadoPagamento.PENDENTE);
+        pedido.getPagamento().setPedido(pedido);
+        if(pedido.getPagamento() instanceof PagamentoBoleto){
+            PagamentoBoleto pagamentoBoleto = (PagamentoBoleto) pedido.getPagamento();
+            boletoService.preencherPagamentoComBoleto(pagamentoBoleto, pedido.getInstante());
+        }
+        pedido = pedidoRepository.save(pedido);
+        pagamentoRepository.save(pedido.getPagamento());
+        for(ItemPedido ip : pedido.getItens()){
+            ip.setDesconto(0.0);
+            ip.setPreco(produtoRepository.findById(ip.getProduto().getId()).get().getPreco());
+            ip.setPedido(pedido);
+        }
+        itemPedidoRepository.saveAll(pedido.getItens());
+
+        return pedido;
+    }
 }

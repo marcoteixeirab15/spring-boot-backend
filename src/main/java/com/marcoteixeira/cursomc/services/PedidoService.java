@@ -19,13 +19,17 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final BoletoService boletoService;
+    private final ClienteService clienteService;
+    private final ProdutoService produtoService;
     private final PagamentoRepository pagamentoRepository;
     private final ProdutoRepository produtoRepository;
     private final ItemPedidoRepository itemPedidoRepository;
 
-    public PedidoService(PedidoRepository pedidoRepository, BoletoService boletoService, PagamentoRepository pagamentoRepository, ProdutoRepository produtoRepository, ItemPedidoRepository itemPedidoRepository) {
+    public PedidoService(PedidoRepository pedidoRepository, BoletoService boletoService, ClienteService clienteService, ProdutoService produtoService, PagamentoRepository pagamentoRepository, ProdutoRepository produtoRepository, ItemPedidoRepository itemPedidoRepository) {
         this.pedidoRepository = pedidoRepository;
         this.boletoService = boletoService;
+        this.clienteService = clienteService;
+        this.produtoService = produtoService;
         this.pagamentoRepository = pagamentoRepository;
         this.produtoRepository = produtoRepository;
         this.itemPedidoRepository = itemPedidoRepository;
@@ -41,6 +45,7 @@ public class PedidoService {
     public Pedido insert(Pedido pedido) {
         pedido.setId(null);
         pedido.setInstante(new Date());
+        pedido.setCliente(clienteService.find(pedido.getCliente().getId()));
         pedido.getPagamento().setEstadoPagamento(EstadoPagamento.PENDENTE);
         pedido.getPagamento().setPedido(pedido);
         if(pedido.getPagamento() instanceof PagamentoBoleto){
@@ -51,11 +56,12 @@ public class PedidoService {
         pagamentoRepository.save(pedido.getPagamento());
         for(ItemPedido ip : pedido.getItens()){
             ip.setDesconto(0.0);
-            ip.setPreco(produtoRepository.findById(ip.getProduto().getId()).get().getPreco());
+            ip.setProduto(produtoService.find(ip.getProduto().getId()));
+            ip.setPreco(produtoService.find(ip.getProduto().getId()).getPreco());
             ip.setPedido(pedido);
         }
         itemPedidoRepository.saveAll(pedido.getItens());
-
+        System.out.println(pedido);
         return pedido;
     }
 }

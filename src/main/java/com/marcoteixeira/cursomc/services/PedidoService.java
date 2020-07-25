@@ -22,16 +22,22 @@ public class PedidoService {
     private final ClienteService clienteService;
     private final ProdutoService produtoService;
     private final PagamentoRepository pagamentoRepository;
-    private final ProdutoRepository produtoRepository;
+    private final EmailService emailService;
     private final ItemPedidoRepository itemPedidoRepository;
 
-    public PedidoService(PedidoRepository pedidoRepository, BoletoService boletoService, ClienteService clienteService, ProdutoService produtoService, PagamentoRepository pagamentoRepository, ProdutoRepository produtoRepository, ItemPedidoRepository itemPedidoRepository) {
+    public PedidoService(PedidoRepository pedidoRepository,
+                         BoletoService boletoService,
+                         ClienteService clienteService,
+                         ProdutoService produtoService,
+                         PagamentoRepository pagamentoRepository,
+                         EmailService emailService,
+                         ItemPedidoRepository itemPedidoRepository) {
         this.pedidoRepository = pedidoRepository;
         this.boletoService = boletoService;
         this.clienteService = clienteService;
         this.produtoService = produtoService;
         this.pagamentoRepository = pagamentoRepository;
-        this.produtoRepository = produtoRepository;
+        this.emailService = emailService;
         this.itemPedidoRepository = itemPedidoRepository;
     }
 
@@ -61,7 +67,7 @@ public class PedidoService {
             ip.setPedido(pedido);
         }
         itemPedidoRepository.saveAll(pedido.getItens());
-        System.out.println(pedido);
+        emailService.sendOrderConfirmationEmail(pedido);
         return pedido;
     }
 }

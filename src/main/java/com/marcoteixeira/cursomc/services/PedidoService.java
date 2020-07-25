@@ -1,5 +1,7 @@
 package com.marcoteixeira.cursomc.services;
 
+import com.marcoteixeira.cursomc.domain.Categoria;
+import com.marcoteixeira.cursomc.domain.Cliente;
 import com.marcoteixeira.cursomc.domain.ItemPedido;
 import com.marcoteixeira.cursomc.domain.PagamentoBoleto;
 import com.marcoteixeira.cursomc.domain.Pedido;
@@ -8,7 +10,14 @@ import com.marcoteixeira.cursomc.repositories.ItemPedidoRepository;
 import com.marcoteixeira.cursomc.repositories.PagamentoRepository;
 import com.marcoteixeira.cursomc.repositories.PedidoRepository;
 import com.marcoteixeira.cursomc.repositories.ProdutoRepository;
+import com.marcoteixeira.cursomc.security.UserSS;
+import com.marcoteixeira.cursomc.services.exceptions.AuthorizationException;
 import com.marcoteixeira.cursomc.services.exceptions.ObjectNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -16,6 +25,8 @@ import java.util.Optional;
 
 @Service
 public class PedidoService {
+
+    private static final Logger log = LoggerFactory.getLogger(MockEmailService.class);
 
     private final PedidoRepository pedidoRepository;
     private final BoletoService boletoService;
@@ -69,5 +80,15 @@ public class PedidoService {
         itemPedidoRepository.saveAll(pedido.getItens());
         emailService.sendOrderConfirmationHtmlEmail(pedido);
         return pedido;
+    }
+
+    public Page<Pedido> findPage(Integer page, Integer linesPerPage, String orderBy, String direction) {
+        UserSS user = UserService.authenticated();
+        if (user == null) {
+            throw new AuthorizationException("Acesso negado");
+        }
+        PageRequest pageRequest = PageRequest.of(page, linesPerPage, Sort.Direction.valueOf(direction), orderBy);
+        Cliente cliente =  clienteService.find(user.getId());
+        return pedidoRepository.findByCliente(cliente, pageRequest);
     }
 }

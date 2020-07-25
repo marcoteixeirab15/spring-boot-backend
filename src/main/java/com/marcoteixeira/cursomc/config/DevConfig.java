@@ -1,6 +1,8 @@
 package com.marcoteixeira.cursomc.config;
 
 import com.marcoteixeira.cursomc.services.DbService;
+import com.marcoteixeira.cursomc.services.EmailService;
+import com.marcoteixeira.cursomc.services.SmtpEmailService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +33,11 @@ public class DevConfig {
 
         dbService.instantiateDatabase();
         return true;
+    }
+
+    @Bean
+    public EmailService emailService() {
+        return new SmtpEmailService();
     }
 
 }

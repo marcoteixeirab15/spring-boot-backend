@@ -3,13 +3,18 @@ package com.marcoteixeira.cursomc.services;
 import com.marcoteixeira.cursomc.domain.Cidade;
 import com.marcoteixeira.cursomc.domain.Cliente;
 import com.marcoteixeira.cursomc.domain.Endereco;
+import com.marcoteixeira.cursomc.domain.enums.Perfil;
 import com.marcoteixeira.cursomc.domain.enums.TipoCliente;
 import com.marcoteixeira.cursomc.dto.ClienteDTO;
 import com.marcoteixeira.cursomc.dto.ClienteNewDTO;
 import com.marcoteixeira.cursomc.repositories.ClienteRepository;
 import com.marcoteixeira.cursomc.repositories.EnderecoRepository;
+import com.marcoteixeira.cursomc.security.UserSS;
+import com.marcoteixeira.cursomc.services.exceptions.AuthorizationException;
 import com.marcoteixeira.cursomc.services.exceptions.DataIntegrityException;
 import com.marcoteixeira.cursomc.services.exceptions.ObjectNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +29,8 @@ import java.util.Optional;
 @Service
 public class ClienteService {
 
+    private static final Logger log = LoggerFactory.getLogger(ClienteService.class);
+
     private final ClienteRepository clienteRepository;
     private final EnderecoRepository enderecoRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -35,6 +42,13 @@ public class ClienteService {
     }
 
     public Cliente find(Integer id) {
+
+        UserSS user = UserService.authenticated();
+        log.info("\n\n\n find user: {}\n\n", user);
+        if (user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())){
+            throw new AuthorizationException("Acesso negado");
+        }
+
         Optional<Cliente> cliente = clienteRepository.findById(id);
         return cliente.orElseThrow(() ->
                 new ObjectNotFoundException("Objeto não encontrado id: " + id + ", Tipo: " + Cliente.class.getName())

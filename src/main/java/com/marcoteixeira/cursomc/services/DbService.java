@@ -12,6 +12,7 @@ import com.marcoteixeira.cursomc.domain.PagamentoComCartao;
 import com.marcoteixeira.cursomc.domain.Pedido;
 import com.marcoteixeira.cursomc.domain.Produto;
 import com.marcoteixeira.cursomc.domain.enums.EstadoPagamento;
+import com.marcoteixeira.cursomc.domain.enums.Perfil;
 import com.marcoteixeira.cursomc.domain.enums.TipoCliente;
 import com.marcoteixeira.cursomc.repositories.CategoriaRepository;
 import com.marcoteixeira.cursomc.repositories.CidadeRepository;
@@ -124,16 +125,21 @@ public class DbService {
         cidadeRepository.saveAll(Arrays.asList(cidade1, cidade2, cidade3));
 
         Cliente cliente1 = new Cliente(null, "Maria Silva", "marco.teixeirab15@gmail.com", "36378912377", TipoCliente.PESSOA_FISICA, bCryptPasswordEncoder.encode("123"));
-
         cliente1.getTelefone().addAll(Arrays.asList("33937720", "982523034"));
+
+        Cliente cliente2 = new Cliente(null, "Ana Costa", "markim150399@gmail.com", "96040106034", TipoCliente.PESSOA_FISICA, bCryptPasswordEncoder.encode("123"));
+        cliente2.addPerfil(Perfil.ADMIN);
+        cliente2.getTelefone().addAll(Arrays.asList("33937728", "982523054"));
 
         Endereco endereco1 = new Endereco(null, "Rua flores", "300", "Apto 303", "Jardim", "72503509", cliente1, cidade1);
         Endereco endereco2 = new Endereco(null, "Avenida Martins", "105", "Sala 800", "Centro", "72503512", cliente1, cidade2);
+        Endereco endereco3 = new Endereco(null, "Avenida Florianopolis", "2106", null, "Centro", "72545232", cliente2, cidade2);
 
         cliente1.getEnderecos().addAll(Arrays.asList(endereco1, endereco2));
+        cliente2.getEnderecos().addAll(Collections.singletonList(endereco3));
 
-        clienteRepository.saveAll(Collections.singletonList(cliente1));
-        enderecoRepository.saveAll(Arrays.asList(endereco1, endereco2));
+        clienteRepository.saveAll(Arrays.asList(cliente1, cliente2));
+        enderecoRepository.saveAll(Arrays.asList(endereco1, endereco2, endereco3));
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 

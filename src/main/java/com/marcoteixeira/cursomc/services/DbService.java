@@ -22,6 +22,7 @@ import com.marcoteixeira.cursomc.repositories.ItemPedidoRepository;
 import com.marcoteixeira.cursomc.repositories.PagamentoRepository;
 import com.marcoteixeira.cursomc.repositories.PedidoRepository;
 import com.marcoteixeira.cursomc.repositories.ProdutoRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -41,17 +42,18 @@ public class DbService {
     private final PedidoRepository pedidoRepository;
     private final PagamentoRepository pagamentoRepository;
     private final ItemPedidoRepository itemPedidoRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
 
     public DbService(CategoriaRepository categoriaRepository,
-                              ProdutoRepository produtoRepository,
-                              EstadoRepository estadoRepository,
-                              CidadeRepository cidadeRepository,
-                              ClienteRepository clienteRepository,
-                              EnderecoRepository enderecoRepository,
-                              PedidoRepository pedidoRepository,
-                              PagamentoRepository pagamentoRepository,
-                              ItemPedidoRepository itemPedidoRepository) {
+                     ProdutoRepository produtoRepository,
+                     EstadoRepository estadoRepository,
+                     CidadeRepository cidadeRepository,
+                     ClienteRepository clienteRepository,
+                     EnderecoRepository enderecoRepository,
+                     PedidoRepository pedidoRepository,
+                     PagamentoRepository pagamentoRepository,
+                     ItemPedidoRepository itemPedidoRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.categoriaRepository = categoriaRepository;
         this.produtoRepository = produtoRepository;
         this.estadoRepository = estadoRepository;
@@ -61,6 +63,7 @@ public class DbService {
         this.pedidoRepository = pedidoRepository;
         this.pagamentoRepository = pagamentoRepository;
         this.itemPedidoRepository = itemPedidoRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     public void instantiateDatabase() throws ParseException {
@@ -120,7 +123,7 @@ public class DbService {
         estadoRepository.saveAll(Arrays.asList(estado1, estado2));
         cidadeRepository.saveAll(Arrays.asList(cidade1, cidade2, cidade3));
 
-        Cliente cliente1 = new Cliente(null, "Maria Silva", "marco.teixeirab15@gmail.com", "36378912377", TipoCliente.PESSOA_FISICA);
+        Cliente cliente1 = new Cliente(null, "Maria Silva", "marco.teixeirab15@gmail.com", "36378912377", TipoCliente.PESSOA_FISICA, bCryptPasswordEncoder.encode("123"));
 
         cliente1.getTelefone().addAll(Arrays.asList("33937720", "982523034"));
 

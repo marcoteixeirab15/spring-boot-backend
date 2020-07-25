@@ -6,7 +6,6 @@ import com.marcoteixeira.cursomc.domain.Endereco;
 import com.marcoteixeira.cursomc.domain.enums.TipoCliente;
 import com.marcoteixeira.cursomc.dto.ClienteDTO;
 import com.marcoteixeira.cursomc.dto.ClienteNewDTO;
-import com.marcoteixeira.cursomc.repositories.CidadeRepository;
 import com.marcoteixeira.cursomc.repositories.ClienteRepository;
 import com.marcoteixeira.cursomc.repositories.EnderecoRepository;
 import com.marcoteixeira.cursomc.services.exceptions.DataIntegrityException;
@@ -15,10 +14,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,10 +26,12 @@ public class ClienteService {
 
     private final ClienteRepository clienteRepository;
     private final EnderecoRepository enderecoRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public ClienteService(ClienteRepository clienteRepository, EnderecoRepository enderecoRepository) {
+    public ClienteService(ClienteRepository clienteRepository, EnderecoRepository enderecoRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.clienteRepository = clienteRepository;
         this.enderecoRepository = enderecoRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     public Cliente find(Integer id) {
@@ -73,11 +74,11 @@ public class ClienteService {
     }
 
     public Cliente fromDTO(ClienteDTO clienteDTO) {
-        return new Cliente(clienteDTO.getId(), clienteDTO.getNome(), clienteDTO.getEmail(), null, null);
+        return new Cliente(clienteDTO.getId(), clienteDTO.getNome(), clienteDTO.getEmail(), null, null, null);
     }
 
     public Cliente fromDTO(ClienteNewDTO clienteNewDTO) {
-        Cliente cliente = new Cliente(null, clienteNewDTO.getNome(), clienteNewDTO.getEmail(), clienteNewDTO.getCpfOuCnpj(), TipoCliente.toEnum(clienteNewDTO.getTipo()));
+        Cliente cliente = new Cliente(null, clienteNewDTO.getNome(), clienteNewDTO.getEmail(), clienteNewDTO.getCpfOuCnpj(), TipoCliente.toEnum(clienteNewDTO.getTipo()), bCryptPasswordEncoder.encode(clienteNewDTO.getSenha()));
         Cidade cidade = new Cidade(clienteNewDTO.getCidadeId(), null, null);
         Endereco endereco = new Endereco(null, clienteNewDTO.getLogradouro(), clienteNewDTO.getNumero(), clienteNewDTO.getComplemento(), clienteNewDTO.getBairro(), clienteNewDTO.getCep(), cliente, cidade);
         cliente.getEnderecos().add(endereco);

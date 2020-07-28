@@ -22,7 +22,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,18 +36,20 @@ public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final EnderecoRepository enderecoRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final S3Service s3Service;
 
-    public ClienteService(ClienteRepository clienteRepository, EnderecoRepository enderecoRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public ClienteService(ClienteRepository clienteRepository, EnderecoRepository enderecoRepository, BCryptPasswordEncoder bCryptPasswordEncoder, S3Service s3Service) {
         this.clienteRepository = clienteRepository;
         this.enderecoRepository = enderecoRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.s3Service = s3Service;
     }
 
     public Cliente find(Integer id) {
 
         UserSS user = UserService.authenticated();
         log.info("\n\n\n find user: {}\n\n", user);
-        if (user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())){
+        if (user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
             throw new AuthorizationException("Acesso negado");
         }
 
@@ -97,10 +101,10 @@ public class ClienteService {
         Endereco endereco = new Endereco(null, clienteNewDTO.getLogradouro(), clienteNewDTO.getNumero(), clienteNewDTO.getComplemento(), clienteNewDTO.getBairro(), clienteNewDTO.getCep(), cliente, cidade);
         cliente.getEnderecos().add(endereco);
         cliente.getTelefone().add(clienteNewDTO.getTelefone1());
-        if (clienteNewDTO.getTelefone2() == null){
+        if (clienteNewDTO.getTelefone2() == null) {
             cliente.getTelefone().add(clienteNewDTO.getTelefone2());
         }
-        if (clienteNewDTO.getTelefone3() == null){
+        if (clienteNewDTO.getTelefone3() == null) {
             cliente.getTelefone().add(clienteNewDTO.getTelefone3());
         }
 
@@ -111,6 +115,10 @@ public class ClienteService {
     private void updateData(Cliente newCliente, Cliente cliente) {
         newCliente.setNome(cliente.getNome());
         newCliente.setEmail(cliente.getEmail());
+    }
+
+    public URI uploadProfilePicture(MultipartFile multipartFile) {
+        return s3Service.uploadFile(multipartFile);
     }
 
 }

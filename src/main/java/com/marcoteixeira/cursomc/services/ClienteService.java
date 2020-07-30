@@ -34,18 +34,15 @@ import java.util.Optional;
 public class ClienteService {
 
     private static final Logger log = LoggerFactory.getLogger(ClienteService.class);
-
-    @Value("${img.prefix.client.profile}")
-    private String prefixo;
-
-    @Value("${img.profile.size}")
-    private Integer size;
-
     private final ClienteRepository clienteRepository;
     private final EnderecoRepository enderecoRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final S3Service s3Service;
     private final ImageService imageService;
+    @Value("${img.prefix.client.profile}")
+    private String prefixo;
+    @Value("${img.profile.size}")
+    private Integer size;
 
     public ClienteService(ClienteRepository clienteRepository,
                           EnderecoRepository enderecoRepository,
@@ -99,6 +96,21 @@ public class ClienteService {
         return clienteRepository.findAll();
     }
 
+    public Cliente findByEmail(String email) {
+        UserSS user = UserService.authenticated();
+        if (user == null || !user.hasRole(Perfil.ADMIN) && !email.equals(user.getUsername())){
+            throw new AuthorizationException("Acesso negado");
+        }
+
+        Cliente cliente = clienteRepository.findByEmail(email);
+        if (cliente == null){
+            throw new ObjectNotFoundException("Objeto não encontrado!, Id:" + user.getId() + ", Tipo: " + Cliente.class.getName());
+        }
+        return cliente;
+
+    }
+
+
     public Page<Cliente> findPage(Integer page, Integer linesPerPage, String orderby, String direction) {
         PageRequest pageRequest = PageRequest.of(page, linesPerPage, Sort.Direction.valueOf(direction), orderby);
         return clienteRepository.findAll(pageRequest);
@@ -132,20 +144,18 @@ public class ClienteService {
 
     public URI uploadProfilePicture(MultipartFile multipartFile) {
         UserSS user = UserService.authenticated();
-        if (user == null ) {
+        if (user == null) {
             throw new AuthorizationException("Acesso negado");
         }
 
         BufferedImage jpgImage = imageService.getJpgImageFromFile(multipartFile);
         jpgImage = imageService.cropSquare(jpgImage);
-        jpgImage = imageService.resize(jpgImage,size);
+        jpgImage = imageService.resize(jpgImage, size);
 
         String fileName = prefixo + user.getId() + ".jpg";
 
-        return  s3Service.uploadFile(imageService.getInputStream(jpgImage, "jpg"), fileName, "image");
+        return s3Service.uploadFile(imageService.getInputStream(jpgImage, "jpg"), fileName, "image");
     }
-
-
 
 
 }

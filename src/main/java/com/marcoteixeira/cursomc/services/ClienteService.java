@@ -15,6 +15,7 @@ import com.marcoteixeira.cursomc.services.exceptions.DataIntegrityException;
 import com.marcoteixeira.cursomc.services.exceptions.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -33,16 +35,25 @@ public class ClienteService {
 
     private static final Logger log = LoggerFactory.getLogger(ClienteService.class);
 
+    @Value("${img.prefix.client.profile}")
+    private String prefixo;
+
     private final ClienteRepository clienteRepository;
     private final EnderecoRepository enderecoRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final S3Service s3Service;
+    private final ImageService imageService;
 
-    public ClienteService(ClienteRepository clienteRepository, EnderecoRepository enderecoRepository, BCryptPasswordEncoder bCryptPasswordEncoder, S3Service s3Service) {
+    public ClienteService(ClienteRepository clienteRepository,
+                          EnderecoRepository enderecoRepository,
+                          BCryptPasswordEncoder bCryptPasswordEncoder,
+                          S3Service s3Service,
+                          ImageService imageService) {
         this.clienteRepository = clienteRepository;
         this.enderecoRepository = enderecoRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.s3Service = s3Service;
+        this.imageService = imageService;
     }
 
     public Cliente find(Integer id) {
@@ -121,14 +132,11 @@ public class ClienteService {
         if (user == null ) {
             throw new AuthorizationException("Acesso negado");
         }
-        URI uri = s3Service.uploadFile(multipartFile);
-        Optional<Cliente> cliente = clienteRepository.findById(user.getId());
-        cliente.ifPresent(c -> {
-            c.setImageUrl(uri.toString());
-            clienteRepository.save(c);
-        });
 
-        return uri;
+        BufferedImage jpgImage = imageService.getJpgImageFromFile(multipartFile);
+        String fileName = prefixo + user.getId() + ".jpg";
+
+        return  s3Service.uploadFile(imageService.getInputStream(jpgImage, "jpg"), fileName, "image");
     }
 
 }
